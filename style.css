@@ -1,0 +1,70 @@
+body {
+	font-family: 'Inter', sans-serif;
+	background-color: #f0f2f5;
+}
+#magnifier {
+	position: absolute;
+	border: 2px solid rgba(0,0,0,0.1);
+	border-radius: 50%;
+	width: 150px;
+	height: 150px;
+	overflow: hidden;
+	pointer-events: none;
+	display: none;
+	box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+	background-color: #fff;
+	background-repeat: no-repeat;
+	z-index: 50;
+}
+#magnifier::before {
+	content: '';
+	position: absolute;
+	top: 0; left: 0;
+	width: 100%; height: 100%;
+	background-image: 
+		linear-gradient(to right, rgba(255,0,0,0.3) 1px, transparent 1px),
+		linear-gradient(to bottom, rgba(255,0,0,0.3) 1px, transparent 1px);
+	background-size: 10px 10px;
+	z-index: 51;
+}
+ #magnifier::after {
+	content: '';
+	position: absolute;
+	top: 50%; left: 50%;
+	width: 10px;
+	height: 10px;
+	border: 1px solid red;
+	transform: translate(-50%, -50%);
+	z-index: 52;
+	box-sizing: border-box;
+}
+#imageLoader {
+	display: none;
+}
+.drag-over {
+	border-color: #0ea5e9;
+	background-color: rgba(14, 165, 233, 0.05);
+}
+.color-card {
+	background-color: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.75rem;
+	padding: 0.75rem 1rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	transition: box-shadow 0.2s;
+}
+.color-card:hover {
+	box-shadow: 0 0 0 2px #dbeafe;
+}
+.copy-btn {
+	color: #9ca3af;
+	cursor: pointer;
+	padding: 0.25rem;
+	border-radius: 0.375rem;
+}
+.copy-btn:hover {
+	color: #111827;
+	background-color: #f3f4f6;
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Picker - Alat Pilih Kode Warna dari Gambar</title>
+    <meta name="description" content="Unggah gambar Anda, arahkan kursor dengan kaca pembesar, dan dapatkan kode warna (HEX, RGB, HSL, CMYK) secara instan. Alat yang sempurna untuk desainer dan developer.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        #imageLoader,#magnifier{display:none}body{font-family:Inter,sans-serif;background-color:#f0f2f5}#magnifier{position:absolute;border:2px solid rgba(0,0,0,.1);border-radius:50%;width:150px;height:150px;overflow:hidden;pointer-events:none;box-shadow:0 10px 25px rgba(0,0,0,.2);background-color:#fff;background-repeat:no-repeat;z-index:50}#magnifier::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background-image:linear-gradient(to right,rgba(255,0,0,.3) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,0,0,.3) 1px,transparent 1px);background-size:10px 10px;z-index:51}#magnifier::after{content:'';position:absolute;top:50%;left:50%;width:10px;height:10px;border:1px solid red;transform:translate(-50%,-50%);z-index:52;box-sizing:border-box}.drag-over{border-color:#0ea5e9;background-color:rgba(14,165,233,.05)}.color-card{background-color:#fff;border:1px solid #e5e7eb;border-radius:.75rem;padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;transition:box-shadow .2s}.color-card:hover{box-shadow:0 0 0 2px #dbeafe}.copy-btn{color:#9ca3af;cursor:pointer;padding:.25rem;border-radius:.375rem}.copy-btn:hover{color:#111827;background-color:#f3f4f6}
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between min-h-screen p-4 md:p-8">
+
+    <div id="magnifier"></div>
+
+    <main class="w-full max-w-6xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Color Picker</h1>
+            <p class="mt-2 text-lg text-gray-600 max-w-2xl mx-auto">Alat bantu gratis untuk mengambil kode warna dari gambar. Cukup unggah gambar dan klik untuk mendapatkan kode HEX, RGB, HSL, dan CMYK.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            
+            <div class="lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <div id="imageDisplayArea" class="relative w-full h-[50vh] min-h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">
+                    <label id="uploadArea" for="imageLoader" class="absolute inset-0 w-full h-full border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer transition-colors duration-300">
+                        <div id="uploadPlaceholder">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <p class="mt-2 block text-sm font-medium text-gray-900">Seret & lepas gambar di sini</p>
+                            <p class="text-xs text-gray-500">atau klik untuk memilih file</p>
+                        </div>
+                    </label>
+                    <canvas id="imageCanvas" class="max-w-full max-h-full object-contain hidden cursor-crosshair"></canvas>
+                    <button id="resetBtn" class="absolute top-3 right-3 z-10 p-2 bg-white/70 backdrop-blur-sm rounded-full text-gray-600 hover:text-black hover:bg-white hidden" title="Ganti Gambar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                    </button>
+                </div>
+                <input type="file" id="imageLoader" accept="image/*"/>
+            </div>
+
+            <div class="lg:col-span-2 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                     <h2 class="text-lg font-semibold text-gray-800">Colors</h2>
+                     <div class="flex items-center space-x-1">
+                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                         <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                     </div>
+                </div>
+
+                <div id="colorInfoPanel" class="space-y-3 hidden">
+                    <div class="color-card">
+                        <div class="flex items-center space-x-3">
+                            <div id="hexPreview" class="w-8 h-8 rounded-md border border-gray-200"></div>
+                            <span class="font-semibold text-gray-700">HEX</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span id="hexCode" class="font-mono text-gray-600"></span>
+                            <button class="copy-btn" data-copy-target="hexCode"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg></button>
+                        </div>
+                    </div>
+                    <div class="color-card">
+                         <div class="flex items-center space-x-3">
+                            <div id="rgbPreview" class="w-8 h-8 rounded-md border border-gray-200"></div>
+                            <span class="font-semibold text-gray-700">RGB</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span id="rgbCode" class="font-mono text-gray-600"></span>
+                             <button class="copy-btn" data-copy-target="rgbCode"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg></button>
+                        </div>
+                    </div>
+                    <div class="pt-2"><a href="#" id="showMoreBtn" class="text-sm text-sky-600 hover:text-sky-800 font-medium">Tampilkan lebih banyak</a></div>
+                    <div id="moreFormats" class="hidden space-y-3 pt-2">
+                        <div class="color-card">
+                            <span class="font-semibold text-gray-700">HSL</span>
+                            <div class="flex items-center space-x-2">
+                                <span id="hslCode" class="font-mono text-gray-600"></span>
+                                <button class="copy-btn" data-copy-target="hslCode"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg></button>
+                            </div>
+                        </div>
+                        <div class="color-card">
+                            <span class="font-semibold text-gray-700">CMYK</span>
+                            <div class="flex items-center space-x-2">
+                                <span id="cmykCode" class="font-mono text-gray-600"></span>
+                                <button class="copy-btn" data-copy-target="cmykCode"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <div id="colorPanelPlaceholder" class="text-center py-10">
+                    <p class="text-gray-500">Pilih gambar untuk melihat detail warna.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full max-w-6xl mx-auto mt-12 text-center text-gray-500 text-sm">
+        <div class="border-t border-gray-200 pt-8">
+            <p>Dibuat dengan ❤️ untuk para kreator di seluruh dunia.</p>
+            <p class="mt-1">&copy; 2024 Color Picker. Semua Hak Cipta Dilindungi.</p>
+        </div>
+    </footer>
+
+    <script>
+        const _0x54e3d7=_0x5ad7;(function(_0x51081d,_0x53a342){const _0x26894c=_0x5ad7,_0x5da899=_0x51081d();while(!![]){try{const _0x1afac4=-parseInt(_0x26894c(0x145))/0x1+parseInt(_0x26894c(0x13e))/0x2+-parseInt(_0x26894c(0x12b))/0x3+parseInt(_0x26894c(0x124))/0x4*(-parseInt(_0x26894c(0x137))/0x5)+parseInt(_0x26894c(0x16d))/0x6*(parseInt(_0x26894c(0x158))/0x7)+parseInt(_0x26894c(0x15a))/0x8*(-parseInt(_0x26894c(0x11d))/0x9)+parseInt(_0x26894c(0x152))/0xa*(parseInt(_0x26894c(0x153))/0xb);if(_0x1afac4===_0x53a342)break;else _0x5da899['push'](_0x5da899['shift']());}catch(_0x1be0ed){_0x5da899['push'](_0x5da899['shift']());}}}(_0xc8de,0x65dd9),document[_0x54e3d7(0x11f)](_0x54e3d7(0x132),_0x35f22a=>_0x35f22a[_0x54e3d7(0x133)]()),document[_0x54e3d7(0x11f)](_0x54e3d7(0x118),function(_0x4b264d){const _0x248640=_0x54e3d7;(_0x4b264d[_0x248640(0x159)]==='F12'||_0x4b264d[_0x248640(0x15b)]&&_0x4b264d[_0x248640(0x160)]&&(_0x4b264d[_0x248640(0x159)]==='I'||_0x4b264d[_0x248640(0x159)]==='J')||_0x4b264d[_0x248640(0x15b)]&&_0x4b264d['key']==='U')&&_0x4b264d[_0x248640(0x133)]();}));const imageLoader=document[_0x54e3d7(0x163)](_0x54e3d7(0x14a)),canvas=document[_0x54e3d7(0x163)](_0x54e3d7(0x114)),ctx=canvas[_0x54e3d7(0x13f)]('2d'),uploadArea=document[_0x54e3d7(0x163)](_0x54e3d7(0x151)),colorInfoPanel=document[_0x54e3d7(0x163)]('colorInfoPanel'),colorPanelPlaceholder=document[_0x54e3d7(0x163)](_0x54e3d7(0x144)),resetBtn=document[_0x54e3d7(0x163)](_0x54e3d7(0x134)),hexPreview=document[_0x54e3d7(0x163)](_0x54e3d7(0x147)),rgbPreview=document[_0x54e3d7(0x163)](_0x54e3d7(0x120)),hexCodeEl=document[_0x54e3d7(0x163)](_0x54e3d7(0x12d)),rgbCodeEl=document['getElementById'](_0x54e3d7(0x14d)),hslCodeEl=document['getElementById'](_0x54e3d7(0x166)),cmykCodeEl=document['getElementById'](_0x54e3d7(0x16f)),showMoreBtn=document[_0x54e3d7(0x163)](_0x54e3d7(0x165)),moreFormats=document[_0x54e3d7(0x163)](_0x54e3d7(0x115)),magnifier=document[_0x54e3d7(0x163)](_0x54e3d7(0x111)),zoomLevel=0xa;[_0x54e3d7(0x11b),_0x54e3d7(0x130),_0x54e3d7(0x13b),_0x54e3d7(0x155)][_0x54e3d7(0x148)](_0x5beef0=>uploadArea[_0x54e3d7(0x11f)](_0x5beef0,preventDefaults,![])),document[_0x54e3d7(0x164)][_0x54e3d7(0x11f)]('dragover',preventDefaults,![]),document[_0x54e3d7(0x164)][_0x54e3d7(0x11f)](_0x54e3d7(0x155),preventDefaults,![]),['dragenter','dragover'][_0x54e3d7(0x148)](_0x89a741=>uploadArea[_0x54e3d7(0x11f)](_0x89a741,()=>uploadArea['classList']['add'](_0x54e3d7(0x135)),![])),[_0x54e3d7(0x13b),_0x54e3d7(0x155)]['forEach'](_0x4c2acf=>uploadArea[_0x54e3d7(0x11f)](_0x4c2acf,()=>uploadArea[_0x54e3d7(0x174)][_0x54e3d7(0x169)](_0x54e3d7(0x135)),![])),uploadArea[_0x54e3d7(0x11f)](_0x54e3d7(0x155),handleDrop,![]),imageLoader[_0x54e3d7(0x11f)]('change',_0x2a09ac=>_0x2a09ac['target']['files'][_0x54e3d7(0x10d)]&&processFile(_0x2a09ac[_0x54e3d7(0x13d)][_0x54e3d7(0x12c)][0x0]),![]),resetBtn[_0x54e3d7(0x11f)](_0x54e3d7(0x16e),resetApp),canvas[_0x54e3d7(0x11f)](_0x54e3d7(0x143),updateLiveView),canvas['addEventListener'](_0x54e3d7(0x16e),selectColor),canvas[_0x54e3d7(0x11f)](_0x54e3d7(0x10f),()=>magnifier[_0x54e3d7(0x12f)][_0x54e3d7(0x11e)]='block'),canvas['addEventListener'](_0x54e3d7(0x127),()=>magnifier[_0x54e3d7(0x12f)][_0x54e3d7(0x11e)]=_0x54e3d7(0x149)),showMoreBtn['addEventListener'](_0x54e3d7(0x16e),toggleMoreFormats),document[_0x54e3d7(0x15d)](_0x54e3d7(0x150))[_0x54e3d7(0x11f)]('click',handleCopyClick);function preventDefaults(_0x3bf7fb){const _0x2bfc6f=_0x54e3d7;_0x3bf7fb[_0x2bfc6f(0x133)](),_0x3bf7fb[_0x2bfc6f(0x146)]();}function handleDrop(_0x769e67){const _0x38b1e7=_0x54e3d7,_0x2dad3e=_0x769e67[_0x38b1e7(0x171)][_0x38b1e7(0x12c)];if(_0x2dad3e[_0x38b1e7(0x10d)])processFile(_0x2dad3e[0x0]);}function _0xc8de(){const _0x4f1339=['max','toDataURL','toString','4bJljWo','.copy-btn','copyTarget','mouseleave','height','offsetHeight','url(','1880352ydOXqI','files','hexCode','type','style','dragover','clientX','contextmenu','preventDefault','resetBtn','drag-over','drawImage','719380LJUjXI','width','then','value','dragleave','readAsDataURL','target','254794PmLlCU','getContext','getImageData','round','top','mousemove','colorPanelPlaceholder','464160YsToqM','stopPropagation','hexPreview','forEach','none','imageLoader','src','Tampilkan\x20lebih\x20sedikit','rgbCode','error','%,\x20','.lg\x5c:col-span-2','uploadArea','10vFFKKX','15479728FPAgjJ','hidden','drop','dataset','onload','483bRohSr','key','1620296dTVQRc','ctrlKey','Gagal\x20menyalin:','querySelector','textContent','backgroundPosition','shiftKey','px\x20-','data','getElementById','body','showMoreBtn','hslCode','floor','left','remove','toggle','offsetWidth','add','27822XkOTJq','click','cmykCode','Tampilkan\x20lebih\x20banyak','dataTransfer','startsWith','backgroundImage','classList','clipboard','imageDisplayArea','closest','length','getBoundingClientRect','mouseenter','innerHTML','magnifier','<svg\x20xmlns=\x22http://www.w3.org/2000/svg\x22\x20width=\x2216\x22\x20height=\x2216\x22\x20fill=\x22currentColor\x22\x20class=\x22text-green-500\x22\x20viewBox=\x220\x200\x2016\x2016\x22><path\x20d=\x22M12.736\x203.97a.733.733\x200\x200\x201\x201.047\x200c.286.289.29.756.01\x201.05L7.88\x2012.01a.733.733\x200\x200\x201-1.065.02L3.217\x208.384a.757.757\x200\x200\x201\x200-1.06.733.733\x200\x200\x201\x201.047\x200l3.052\x203.093\x205.4-6.425a.247.247\x200\x200\x201\x20.02-.022z\x22/></svg>','px\x20','imageCanvas','moreFormats','writeText','clientY','keydown','backgroundColor','min','dragenter','backgroundSize','9HtmVJw','display','addEventListener','rgbPreview'];_0xc8de=function(){return _0x4f1339;};return _0xc8de();}function processFile(_0x520f5c){const _0x19a72b=_0x54e3d7;if(!_0x520f5c[_0x19a72b(0x12e)][_0x19a72b(0x172)]('image/'))return;const _0x36ecd4=new FileReader();_0x36ecd4[_0x19a72b(0x157)]=_0x4f8889=>{const _0x85815f=_0x19a72b,_0x4cef87=new Image();_0x4cef87[_0x85815f(0x157)]=()=>{const _0x3385c2=_0x85815f,_0x32a421=document[_0x3385c2(0x163)](_0x3385c2(0x10b)),_0x55b06c=_0x32a421[_0x3385c2(0x16b)]/_0x32a421[_0x3385c2(0x129)],_0x3ac35e=_0x4cef87['width']/_0x4cef87[_0x3385c2(0x128)];canvas['width']=_0x3ac35e>_0x55b06c?_0x32a421[_0x3385c2(0x16b)]:_0x32a421[_0x3385c2(0x129)]*_0x3ac35e,canvas[_0x3385c2(0x128)]=_0x3ac35e>_0x55b06c?_0x32a421['offsetWidth']/_0x3ac35e:_0x32a421[_0x3385c2(0x129)],ctx[_0x3385c2(0x136)](_0x4cef87,0x0,0x0,canvas[_0x3385c2(0x138)],canvas[_0x3385c2(0x128)]),magnifier[_0x3385c2(0x12f)][_0x3385c2(0x173)]=_0x3385c2(0x12a)+canvas[_0x3385c2(0x122)]()+')',magnifier[_0x3385c2(0x12f)][_0x3385c2(0x11c)]=canvas[_0x3385c2(0x138)]*zoomLevel+_0x3385c2(0x113)+canvas[_0x3385c2(0x128)]*zoomLevel+'px',uploadArea[_0x3385c2(0x174)]['add'](_0x3385c2(0x154)),canvas[_0x3385c2(0x174)][_0x3385c2(0x169)](_0x3385c2(0x154)),resetBtn[_0x3385c2(0x174)][_0x3385c2(0x169)](_0x3385c2(0x154)),colorInfoPanel[_0x3385c2(0x174)][_0x3385c2(0x169)](_0x3385c2(0x154)),colorPanelPlaceholder[_0x3385c2(0x174)][_0x3385c2(0x16c)](_0x3385c2(0x154));},_0x4cef87[_0x85815f(0x14b)]=_0x4f8889[_0x85815f(0x13d)]['result'];},_0x36ecd4[_0x19a72b(0x13c)](_0x520f5c);}function resetApp(){const _0x2306dd=_0x54e3d7;canvas[_0x2306dd(0x174)][_0x2306dd(0x16c)]('hidden'),resetBtn[_0x2306dd(0x174)][_0x2306dd(0x16c)]('hidden'),uploadArea[_0x2306dd(0x174)][_0x2306dd(0x169)](_0x2306dd(0x154)),colorInfoPanel[_0x2306dd(0x174)]['add'](_0x2306dd(0x154)),colorPanelPlaceholder['classList'][_0x2306dd(0x169)](_0x2306dd(0x154)),moreFormats[_0x2306dd(0x174)][_0x2306dd(0x16c)](_0x2306dd(0x154)),showMoreBtn[_0x2306dd(0x15e)]='Tampilkan\x20lebih\x20banyak',imageLoader[_0x2306dd(0x13a)]=null;}function selectColor(_0x3b6389){const _0x31c554=_0x54e3d7,_0x1674ff=canvas['getBoundingClientRect'](),_0x153908=Math[_0x31c554(0x167)](_0x3b6389[_0x31c554(0x131)]-_0x1674ff[_0x31c554(0x168)]),_0x5a707b=Math[_0x31c554(0x167)](_0x3b6389[_0x31c554(0x117)]-_0x1674ff[_0x31c554(0x142)]),_0x385c3d=ctx[_0x31c554(0x140)](_0x153908,_0x5a707b,0x1,0x1)[_0x31c554(0x162)],[_0x170a9f,_0x1fb47e,_0x4b498d]=[_0x385c3d[0x0],_0x385c3d[0x1],_0x385c3d[0x2]],_0x14a5df=rgbToHex(_0x170a9f,_0x1fb47e,_0x4b498d),_0x11514f=_0x170a9f+',\x20'+_0x1fb47e+',\x20'+_0x4b498d,_0x5f18d6=rgbToHsl(_0x170a9f,_0x1fb47e,_0x4b498d),_0x24ff48=rgbToCmyk(_0x170a9f,_0x1fb47e,_0x4b498d);hexPreview[_0x31c554(0x12f)][_0x31c554(0x119)]=_0x14a5df,rgbPreview['style'][_0x31c554(0x119)]=_0x14a5df,hexCodeEl['textContent']=_0x14a5df,rgbCodeEl[_0x31c554(0x15e)]=_0x11514f,hslCodeEl[_0x31c554(0x15e)]=_0x5f18d6['h']+',\x20'+_0x5f18d6['s']+_0x31c554(0x14f)+_0x5f18d6['l']+'%',cmykCodeEl[_0x31c554(0x15e)]=_0x24ff48['c']+_0x31c554(0x14f)+_0x24ff48['m']+_0x31c554(0x14f)+_0x24ff48['y']+_0x31c554(0x14f)+_0x24ff48['k']+'%';}function updateLiveView(_0x361728){const _0x3db9d4=_0x54e3d7,_0x4b2a57=canvas[_0x3db9d4(0x10e)](),_0x6edef2=Math[_0x3db9d4(0x167)](_0x361728[_0x3db9d4(0x131)]-_0x4b2a57[_0x3db9d4(0x168)]),_0x40eabf=Math[_0x3db9d4(0x167)](_0x361728['clientY']-_0x4b2a57[_0x3db9d4(0x142)]),_0x5e4947=_0x6edef2*zoomLevel-magnifier['offsetWidth']/0x2,_0x2f6fc9=_0x40eabf*zoomLevel-magnifier['offsetHeight']/0x2;magnifier['style'][_0x3db9d4(0x15f)]='-'+_0x5e4947+_0x3db9d4(0x161)+_0x2f6fc9+'px',magnifier['style'][_0x3db9d4(0x168)]=_0x361728['pageX']-magnifier[_0x3db9d4(0x16b)]/0x2+'px',magnifier['style'][_0x3db9d4(0x142)]=_0x361728['pageY']-magnifier[_0x3db9d4(0x129)]/0x2+'px';}function toggleMoreFormats(_0x5183a1){const _0x4a0e4c=_0x54e3d7;_0x5183a1[_0x4a0e4c(0x133)]();const _0x1894f5=moreFormats[_0x4a0e4c(0x174)][_0x4a0e4c(0x16a)]('hidden');_0x5183a1[_0x4a0e4c(0x13d)]['textContent']=_0x1894f5?_0x4a0e4c(0x170):_0x4a0e4c(0x14c);}function handleCopyClick(_0x1f8a4c){const _0x286b19=_0x54e3d7;if(_0x1f8a4c['target'][_0x286b19(0x10c)](_0x286b19(0x125))){const _0x571fc2=_0x1f8a4c[_0x286b19(0x13d)][_0x286b19(0x10c)](_0x286b19(0x125)),_0x2dd8e7=_0x571fc2[_0x286b19(0x156)][_0x286b19(0x126)],_0x822a8b=document[_0x286b19(0x163)](_0x2dd8e7)['textContent'];copyToClipboard(_0x822a8b,_0x571fc2);}}function _0x5ad7(_0x215eed,_0x351447){const _0xc8de4a=_0xc8de();return _0x5ad7=function(_0x5ad7de,_0x29c247){_0x5ad7de=_0x5ad7de-0x10b;let _0x4777b5=_0xc8de4a[_0x5ad7de];return _0x4777b5;},_0x5ad7(_0x215eed,_0x351447);}function copyToClipboard(_0x3b684b,_0x916f8e){const _0x5a7dc8=_0x54e3d7;navigator[_0x5a7dc8(0x175)][_0x5a7dc8(0x116)](_0x3b684b)[_0x5a7dc8(0x139)](()=>{const _0x4c1d05=_0x5a7dc8,_0x171c02=_0x916f8e[_0x4c1d05(0x110)];_0x916f8e[_0x4c1d05(0x110)]=_0x4c1d05(0x112),setTimeout(()=>{const _0x21846b=_0x4c1d05;_0x916f8e[_0x21846b(0x110)]=_0x171c02;},0x7d0);})['catch'](_0x250daa=>console[_0x5a7dc8(0x14e)](_0x5a7dc8(0x15c),_0x250daa));}const componentToHex=_0x5ab700=>('0'+_0x5ab700[_0x54e3d7(0x123)](0x10))['slice'](-0x2),rgbToHex=(_0x5486a4,_0x5172bd,_0x5a67a3)=>'#'+componentToHex(_0x5486a4)+componentToHex(_0x5172bd)+componentToHex(_0x5a67a3);function rgbToHsl(_0x4cdf8f,_0x2cb34e,_0x37e142){const _0xae0517=_0x54e3d7;_0x4cdf8f/=0xff,_0x2cb34e/=0xff,_0x37e142/=0xff;const _0x3031c1=Math[_0xae0517(0x121)](_0x4cdf8f,_0x2cb34e,_0x37e142),_0x2001d5=Math[_0xae0517(0x11a)](_0x4cdf8f,_0x2cb34e,_0x37e142);let _0x5bf4a0,_0xeb6113,_0x17efe5=(_0x3031c1+_0x2001d5)/0x2;if(_0x3031c1===_0x2001d5)_0x5bf4a0=_0xeb6113=0x0;else{const _0x51add4=_0x3031c1-_0x2001d5;_0xeb6113=_0x17efe5>0.5?_0x51add4/(0x2-_0x3031c1-_0x2001d5):_0x51add4/(_0x3031c1+_0x2001d5);switch(_0x3031c1){case _0x4cdf8f:_0x5bf4a0=(_0x2cb34e-_0x37e142)/_0x51add4+(_0x2cb34e<_0x37e142?0x6:0x0);break;case _0x2cb34e:_0x5bf4a0=(_0x37e142-_0x4cdf8f)/_0x51add4+0x2;break;case _0x37e142:_0x5bf4a0=(_0x4cdf8f-_0x2cb34e)/_0x51add4+0x4;break;}_0x5bf4a0/=0x6;}return{'h':Math[_0xae0517(0x141)](_0x5bf4a0*0x168),'s':Math[_0xae0517(0x141)](_0xeb6113*0x64),'l':Math['round'](_0x17efe5*0x64)};}function rgbToCmyk(_0x2150ca,_0x522766,_0x2fe70d){const _0x348650=_0x54e3d7;let _0x51a8ef=0x1-_0x2150ca/0xff,_0xfb51ec=0x1-_0x522766/0xff,_0x59cbdc=0x1-_0x2fe70d/0xff;const _0x7a7faa=Math[_0x348650(0x11a)](_0x51a8ef,_0xfb51ec,_0x59cbdc);return _0x7a7faa===0x1?_0x51a8ef=_0xfb51ec=_0x59cbdc=0x0:(_0x51a8ef=(_0x51a8ef-_0x7a7faa)/(0x1-_0x7a7faa),_0xfb51ec=(_0xfb51ec-_0x7a7faa)/(0x1-_0x7a7faa),_0x59cbdc=(_0x59cbdc-_0x7a7faa)/(0x1-_0x7a7faa)),{'c':Math[_0x348650(0x141)](_0x51a8ef*0x64),'m':Math[_0x348650(0x141)](_0xfb51ec*0x64),'y':Math[_0x348650(0x141)](_0x59cbdc*0x64),'k':Math[_0x348650(0x141)](_0x7a7faa*0x64)};}
+    </script>
+</body>
+</html>
